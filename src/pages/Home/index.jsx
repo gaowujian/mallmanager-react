@@ -1,7 +1,9 @@
-import { Col, Row, Layout, Menu } from "antd";
+import { Col, Row, Layout, Menu, message } from "antd";
 import { AppstoreOutlined, TagOutlined } from "@ant-design/icons";
+
 import React from "react";
 import "./style.less";
+
 const { Header, Content, Sider } = Layout;
 const { SubMenu } = Menu;
 
@@ -12,7 +14,9 @@ const rootSubmenuKeys = [
   "order-management",
   "data-statistics",
 ];
-function Home() {
+
+const routeMap = {};
+function Home(props) {
   const [openKeys, setOpenKeys] = React.useState(["user-management"]);
 
   const onOpenChange = (keys) => {
@@ -22,6 +26,18 @@ function Home() {
     } else {
       setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
     }
+  };
+  const handleItemClick = ({ item, key, keyPath }) => {
+    const currentPath = props.location.pathname;
+    if (currentPath !== `/${key}`) {
+      props.history.push(`/${key}`);
+    }
+  };
+  const handleLogout = () => {
+    // 清除缓存，提示和路由跳转
+    localStorage.clear();
+    message.success("退出成功");
+    props.history.push("/login");
   };
   return (
     <div className="home-container">
@@ -35,15 +51,17 @@ function Home() {
               <h3 style={{ textAlign: "center" }}>后台管理系统</h3>
             </Col>
             <Col span={2}>
-              <a>退出</a>
+              <a onClick={handleLogout}>退出</a>
             </Col>
           </Row>
         </Header>
         <Layout>
           <Sider className="home-sider">
-            <Menu mode="inline" openKeys={openKeys} onOpenChange={onOpenChange}>
+            <Menu mode="inline" openKeys={openKeys} onOpenChange={onOpenChange} onClick={handleItemClick}>
               <SubMenu key="user-management" icon={<AppstoreOutlined />} title="用户管理">
-                <Menu.Item icon={<TagOutlined />}>用户列表</Menu.Item>
+                <Menu.Item icon={<TagOutlined />} key="users">
+                  用户列表
+                </Menu.Item>
               </SubMenu>
               <SubMenu key="permission-management" icon={<AppstoreOutlined />} title="权限管理">
                 <Menu.Item icon={<TagOutlined />}>角色列表</Menu.Item>
