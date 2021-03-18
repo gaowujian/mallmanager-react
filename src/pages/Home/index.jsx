@@ -1,8 +1,72 @@
+import { Col, Row, Layout, Menu } from "antd";
+import { AppstoreOutlined, TagOutlined } from "@ant-design/icons";
 import React from "react";
 import "./style.less";
+const { Header, Content, Sider } = Layout;
+const { SubMenu } = Menu;
 
+const rootSubmenuKeys = [
+  "user-management",
+  "permission-management",
+  "product-management",
+  "order-management",
+  "data-statistics",
+];
 function Home() {
-  return <div className="home-container">home</div>;
+  const [openKeys, setOpenKeys] = React.useState(["user-management"]);
+
+  const onOpenChange = (keys) => {
+    const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
+    if (rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
+      setOpenKeys(keys);
+    } else {
+      setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
+    }
+  };
+  return (
+    <div className="home-container">
+      <Layout>
+        <Header className="home-header">
+          <Row justify="center" align="middle">
+            <Col span={4}>
+              <span>logo</span>
+            </Col>
+            <Col span={18}>
+              <h3 style={{ textAlign: "center" }}>后台管理系统</h3>
+            </Col>
+            <Col span={2}>
+              <a>退出</a>
+            </Col>
+          </Row>
+        </Header>
+        <Layout>
+          <Sider className="home-sider">
+            <Menu mode="inline" openKeys={openKeys} onOpenChange={onOpenChange}>
+              <SubMenu key="user-management" icon={<AppstoreOutlined />} title="用户管理">
+                <Menu.Item icon={<TagOutlined />}>用户列表</Menu.Item>
+              </SubMenu>
+              <SubMenu key="permission-management" icon={<AppstoreOutlined />} title="权限管理">
+                <Menu.Item icon={<TagOutlined />}>角色列表</Menu.Item>
+                <Menu.Item icon={<TagOutlined />}>权限列表</Menu.Item>
+              </SubMenu>
+              <SubMenu key="product-management" icon={<AppstoreOutlined />} title="商品管理">
+                <Menu.Item icon={<TagOutlined />}>商品列表</Menu.Item>
+                <Menu.Item icon={<TagOutlined />}>分类参数</Menu.Item>
+                <Menu.Item icon={<TagOutlined />}>商品分类</Menu.Item>
+              </SubMenu>
+              <SubMenu key="order-management" icon={<AppstoreOutlined />} title="订单管理">
+                <Menu.Item icon={<TagOutlined />}>订单列表</Menu.Item>
+              </SubMenu>
+              <SubMenu key="data-statistics" icon={<AppstoreOutlined />} title="数据统计">
+                <Menu.Item icon={<TagOutlined />}>数据列表</Menu.Item>
+              </SubMenu>
+            </Menu>
+          </Sider>
+          <Content className="home-content">内容区域</Content>
+        </Layout>
+      </Layout>
+    </div>
+  );
 }
 
 export default Home;
