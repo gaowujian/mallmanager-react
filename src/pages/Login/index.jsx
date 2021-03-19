@@ -6,7 +6,7 @@ import http from "@/utils/http";
 function Login(props) {
   const [form] = Form.useForm();
   const handleOnFinish = async function (values) {
-    console.log("values:", values);
+    // console.log("values:", values);
     const res = await http.post("/login", values);
     const {
       data: { token },

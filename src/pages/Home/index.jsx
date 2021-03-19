@@ -1,7 +1,7 @@
-import { Col, Row, Layout, Menu, message } from "antd";
 import { AppstoreOutlined, TagOutlined } from "@ant-design/icons";
-
+import { Col, Layout, Menu, message, Row, Button } from "antd";
 import React from "react";
+import { withRouter } from "react-router-dom";
 import "./style.less";
 
 const { Header, Content, Sider } = Layout;
@@ -15,7 +15,6 @@ const rootSubmenuKeys = [
   "data-statistics",
 ];
 
-const routeMap = {};
 function Home(props) {
   const [openKeys, setOpenKeys] = React.useState(["user-management"]);
 
@@ -34,10 +33,12 @@ function Home(props) {
     }
   };
   const handleLogout = () => {
-    // 清除缓存，提示和路由跳转
+    // 清除缓存，路由跳转并提示
     localStorage.clear();
-    message.success("退出成功");
+    // console.log("props:", props);
     props.history.push("/login");
+
+    message.success("退出成功");
   };
   return (
     <div className="home-container">
@@ -51,7 +52,9 @@ function Home(props) {
               <h3 style={{ textAlign: "center" }}>后台管理系统</h3>
             </Col>
             <Col span={2}>
-              <a onClick={handleLogout}>退出</a>
+              <Button ghost onClick={handleLogout}>
+                退出
+              </Button>
             </Col>
           </Row>
         </Header>
@@ -80,11 +83,11 @@ function Home(props) {
               </SubMenu>
             </Menu>
           </Sider>
-          <Content className="home-content">内容区域</Content>
+          <Content className="home-content">{props.children}</Content>
         </Layout>
       </Layout>
     </div>
   );
 }
 
-export default Home;
+export default withRouter(Home);
