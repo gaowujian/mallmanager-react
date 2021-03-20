@@ -54,8 +54,8 @@ function Users() {
       title: "用户状态",
       dataIndex: "mg_state",
       key: "mg_state",
-      render(text) {
-        return <Switch defaultChecked={text} />;
+      render(text, record) {
+        return <Switch defaultChecked={text} onChange={(checked) => handleSwitchChange(checked, record)} />;
       },
     },
     {
@@ -89,6 +89,20 @@ function Users() {
   const queryRef = useRef(query);
   queryRef.current = query;
 
+  const handleSwitchChange = async (checked, record) => {
+    const {
+      meta: { msg, status },
+    } = await http.put(`/users/${record.id}/state/${checked}`);
+    if (status === 200) {
+      message.success(msg);
+    } else {
+      message.error(msg);
+      // 如果状态更新有误,那么重新刷新页面，保证页面数据的正确性
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  };
   const userIdRef = useRef(0);
   const showUserEditForm = (record) => {
     setUserEditFormVisible(true);
