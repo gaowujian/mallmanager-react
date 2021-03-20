@@ -5,7 +5,6 @@ import http from "@/utils/http";
 import HomeLayout from "../Home";
 import { format } from "date-fns";
 import { CheckOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { values } from "lodash";
 
 const formItemLayout = {
   labelCol: {
@@ -17,62 +16,63 @@ const formItemLayout = {
     sm: { span: 20 },
   },
 };
-const columns = [
-  {
-    dataIndex: "num",
-    key: "num",
-    title: "#",
-    render(text, record, index) {
-      return <span>{index}</span>;
-    },
-  },
-  {
-    title: "姓名",
-    dataIndex: "username",
-    key: "username",
-  },
-  {
-    title: "邮箱",
-    dataIndex: "email",
-    key: "email",
-  },
-  {
-    title: "电话",
-    dataIndex: "mobile",
-    key: "mobile",
-  },
-  {
-    title: "创建时间",
-    dataIndex: "create_time",
-    key: "create_time",
-    render(text, record) {
-      return <span>{format(text, "yyyy-MM-dd")}</span>;
-    },
-  },
-  {
-    title: "用户状态",
-    dataIndex: "mg_state",
-    key: "mg_state",
-    render(text) {
-      return <Switch defaultChecked={text} />;
-    },
-  },
-  {
-    title: "操作",
-    dataIndex: "actions",
-    key: "actions",
-    render() {
-      return (
-        <Space direction="horizontal">
-          <Button shape="circle" type="primary" icon={<EditOutlined />} />
-          <Button shape="circle" icon={<CheckOutlined />} />
-          <Button shape="circle" danger icon={<DeleteOutlined />} />
-        </Space>
-      );
-    },
-  },
-];
+
 function Users() {
+  const columns = [
+    {
+      dataIndex: "num",
+      key: "num",
+      title: "#",
+      render(text, record, index) {
+        return <span>{index}</span>;
+      },
+    },
+    {
+      title: "姓名",
+      dataIndex: "username",
+      key: "username",
+    },
+    {
+      title: "邮箱",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "电话",
+      dataIndex: "mobile",
+      key: "mobile",
+    },
+    {
+      title: "创建时间",
+      dataIndex: "create_time",
+      key: "create_time",
+      render(text, record) {
+        return <span>{format(text, "yyyy-MM-dd")}</span>;
+      },
+    },
+    {
+      title: "用户状态",
+      dataIndex: "mg_state",
+      key: "mg_state",
+      render(text) {
+        return <Switch defaultChecked={text} />;
+      },
+    },
+    {
+      title: "操作",
+      dataIndex: "actions",
+      key: "actions",
+      render(text, record) {
+        return (
+          <Space direction="horizontal">
+            <Button shape="circle" type="primary" icon={<EditOutlined />} onClick={() => showUserEditForm(record)} />
+            <Button shape="circle" icon={<CheckOutlined />} />
+            <Button shape="circle" danger icon={<DeleteOutlined />} />
+          </Space>
+        );
+      },
+    },
+  ];
   const [dataSource, setDataSource] = useState([]);
   const [query, setQuery] = useState("");
   const [pagination, setPagination] = useState({
@@ -83,10 +83,18 @@ function Users() {
     pageSizeOptions: ["1", "2", "3", "4"],
     showTotal: (total) => `Total ${total} times`,
   });
+  const [userEditFormVisible, setUserEditFormVisible] = useState(false);
   const paginationRef = useRef(pagination);
   paginationRef.current = pagination;
   const queryRef = useRef(query);
   queryRef.current = query;
+
+  const userIdRef = useRef(0);
+  const showUserEditForm = (record) => {
+    setUserEditFormVisible(true);
+    userIdRef.current = record.id;
+    form.setFieldsValue(record);
+  };
 
   const [visible, setVisible] = useState(false);
   const [form] = Form.useForm();
@@ -154,6 +162,21 @@ function Users() {
         console.log("表单验证错误:", err);
       });
   };
+
+  const handleEditUserOk = async function () {
+    const {
+      meta: { msg, status },
+    } = await http.put(`/users/${userIdRef.current}`, form.getFieldsValue());
+    // 提示成功，关闭弹出框，清除表单数据，更新数据(调用getUserList)
+    if (status === 200) {
+      message.success(msg);
+      setUserEditFormVisible(false);
+      getUserList();
+      form.resetFields();
+    } else {
+      message.error(msg);
+    }
+  };
   return (
     <HomeLayout>
       <div className="user-container">
@@ -186,6 +209,28 @@ function Users() {
               </Form.Item>
               <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码!" }]}>
                 <Input.Password />
+              </Form.Item>
+              <Form.Item label="邮箱" name="email">
+                <Input />
+              </Form.Item>
+              <Form.Item label="电话" name="mobile">
+                <Input />
+              </Form.Item>
+            </Form>
+          </Modal>
+          <Modal
+            title="修改用户"
+            okText="确定"
+            cancelText="取消"
+            onOk={handleEditUserOk}
+            onCancel={() => {
+              setUserEditFormVisible(false);
+            }}
+            visible={userEditFormVisible}
+          >
+            <Form form={form} {...formItemLayout} name="userEditForm">
+              <Form.Item label="用户名" name="username">
+                <Input disabled />
               </Form.Item>
               <Form.Item label="邮箱" name="email">
                 <Input />
