@@ -1,69 +1,78 @@
-import { Breadcrumb, Button, Card, Input, message, Space, Table, Switch, Form } from "antd";
+import { Breadcrumb, Button, Card, Input, message, Space, Table, Switch, Form, Modal } from "antd";
 import React, { useState, useEffect, useRef } from "react";
 import "./style.less";
 import http from "@/utils/http";
 import HomeLayout from "../Home";
 import { format } from "date-fns";
 import { CheckOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import Modal from "antd/lib/modal/Modal";
-import { useForm } from "antd/lib/form/Form";
+import { values } from "lodash";
 
+const formItemLayout = {
+  labelCol: {
+    xs: { span: 24 },
+    sm: { span: 4 },
+  },
+  wrapperCol: {
+    xs: { span: 24 },
+    sm: { span: 20 },
+  },
+};
+const columns = [
+  {
+    dataIndex: "num",
+    key: "num",
+    title: "#",
+    render(text, record, index) {
+      return <span>{index}</span>;
+    },
+  },
+  {
+    title: "姓名",
+    dataIndex: "username",
+    key: "username",
+  },
+  {
+    title: "邮箱",
+    dataIndex: "email",
+    key: "email",
+  },
+  {
+    title: "电话",
+    dataIndex: "mobile",
+    key: "mobile",
+  },
+  {
+    title: "创建时间",
+    dataIndex: "create_time",
+    key: "create_time",
+    render(text, record) {
+      return <span>{format(text, "yyyy-MM-dd")}</span>;
+    },
+  },
+  {
+    title: "用户状态",
+    dataIndex: "mg_state",
+    key: "mg_state",
+    render(text) {
+      return <Switch defaultChecked={text} />;
+    },
+  },
+  {
+    title: "操作",
+    dataIndex: "actions",
+    key: "actions",
+    render() {
+      return (
+        <Space direction="horizontal">
+          <Button shape="circle" type="primary" icon={<EditOutlined />} />
+          <Button shape="circle" icon={<CheckOutlined />} />
+          <Button shape="circle" danger icon={<DeleteOutlined />} />
+        </Space>
+      );
+    },
+  },
+];
 function Users() {
-  const columns = [
-    {
-      dataIndex: "num",
-      key: "num",
-      title: "#",
-      render(text, record, index) {
-        return <span>{index}</span>;
-      },
-    },
-    {
-      title: "姓名",
-      dataIndex: "username",
-      key: "username",
-    },
-    {
-      title: "邮箱",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "电话",
-      dataIndex: "mobile",
-      key: "mobile",
-    },
-    {
-      title: "创建时间",
-      dataIndex: "create_time",
-      key: "create_time",
-      render(text, record) {
-        return <span>{format(text, "yyyy-MM-dd")}</span>;
-      },
-    },
-    {
-      title: "用户状态",
-      dataIndex: "mg_state",
-      key: "mg_state",
-      render(text) {
-        return <Switch defaultChecked={text} />;
-      },
-    },
-    {
-      title: "操作",
-      dataIndex: "actions",
-      key: "actions",
-      render() {
-        return (
-          <Space direction="horizontal">
-            <Button shape="circle" type="primary" icon={<EditOutlined />} />
-            <Button shape="circle" icon={<CheckOutlined />} />
-            <Button shape="circle" danger icon={<DeleteOutlined />} />
-          </Space>
-        );
-      },
-    },
-  ];
   const [dataSource, setDataSource] = useState([]);
   const [query, setQuery] = useState("");
   const [pagination, setPagination] = useState({
@@ -80,7 +89,7 @@ function Users() {
   queryRef.current = query;
 
   const [visible, setVisible] = useState(false);
-  const [form] = useForm();
+  const [form] = Form.useForm();
   const getUserList = async function () {
     const newPagination = paginationRef.current;
     const query = queryRef.current;
@@ -125,8 +134,9 @@ function Users() {
   };
 
   const handleAddUserOk = function () {
-    form.validateFields(async (err, values) => {
-      if (!err) {
+    form
+      .validateFields()
+      .then(async (values) => {
         const {
           meta: { msg, status },
         } = await http.post("/users", values);
@@ -139,8 +149,10 @@ function Users() {
         } else {
           message.error(msg);
         }
-      }
-    });
+      })
+      .catch((err) => {
+        console.log("表单验证错误:", err);
+      });
   };
   return (
     <HomeLayout>
@@ -168,7 +180,7 @@ function Users() {
             }}
             visible={visible}
           >
-            <Form form={form}>
+            <Form form={form} {...formItemLayout} name="userAddForm">
               <Form.Item label="用户名" name="username" rules={[{ required: true, message: "请输入用户名!" }]}>
                 <Input />
               </Form.Item>
