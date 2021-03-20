@@ -4,7 +4,7 @@ import "./style.less";
 import http from "@/utils/http";
 import HomeLayout from "../Home";
 import { format } from "date-fns";
-import Icon, { CheckOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { CheckOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const columns = [
   {
@@ -65,11 +65,12 @@ const columns = [
 const reducer = (state, { type, payload }) => {
   switch (type) {
     case "INIT":
-      return { ...state };
+      return { ...state, total: payload };
+    case "CHANGE_PAGE":
     case "CHANGE_PAGE_SIZE":
       return { ...state, ...payload };
-    case "UPDATE_TOTAL":
-      return { ...state, total: payload };
+    case "UPDATE":
+      return { ...state, ...payload };
     default:
       return state;
   }
@@ -85,33 +86,50 @@ function Users() {
     showSizeChanger: true,
     pageSizeOptions: ["1", "2", "3", "4"],
     showTotal: (total) => `Total ${total} times`,
+    onChange: (page, pageSize) => {
+      getUserList(page, pageSize);
+    },
+    onShowSizeChange: (current, pageSize) => {
+      getUserList(current, pageSize);
+    },
   });
-  const getUserList = useCallback(async function () {
-    const {
-      data,
-      meta: { msg, status },
-    } = await http.get("/users", {
-      params: {
-        query: query,
-        pagenum: pagination.current,
-        pagesize: pagination.pageSize,
-      },
-    });
-    if (status === 200) {
-      setDataSource(data.users);
-      dispatch({
-        type: "UPDATE_TOTAL",
-        payload: data.total,
+
+  const getUserList = useCallback(
+    async function (current, pageSize) {
+      const {
+        data,
+        meta: { msg, status },
+      } = await http.get("/users", {
+        params: {
+          query: query,
+          pagenum: current || pagination.current,
+          pagesize: pageSize || pagination.pageSize,
+        },
       });
-      message.success(msg);
-    } else {
-      message.error(msg);
-    }
-  }, []);
+      if (status === 200) {
+        setDataSource(data.users);
+        dispatch({
+          type: "UPDATE",
+          payload: {
+            current: current || pagination.current,
+            pagesize: pageSize || pagination.pageSize,
+            total: data.total,
+          },
+        });
+        message.success(msg);
+      } else {
+        message.error(msg);
+      }
+    },
+
+    [query, pagination]
+  );
   // 初始化数据
+  /* eslint-disable */
   useEffect(() => {
     getUserList();
   }, []);
+
   return (
     <HomeLayout>
       <div className="user-container">
