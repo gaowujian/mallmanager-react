@@ -1,5 +1,5 @@
 import { Breadcrumb, Button, Card, Input, message, Space, Table, Switch, Form } from "antd";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./style.less";
 import http from "@/utils/http";
 import HomeLayout from "../Home";
@@ -8,63 +8,62 @@ import { CheckOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import Modal from "antd/lib/modal/Modal";
 import { useForm } from "antd/lib/form/Form";
 
-const columns = [
-  {
-    dataIndex: "num",
-    key: "num",
-    title: "#",
-    render(text, record, index) {
-      return <span>{index}</span>;
-    },
-  },
-  {
-    title: "姓名",
-    dataIndex: "username",
-    key: "username",
-  },
-  {
-    title: "邮箱",
-    dataIndex: "email",
-    key: "email",
-  },
-  {
-    title: "电话",
-    dataIndex: "mobile",
-    key: "mobile",
-  },
-  {
-    title: "创建时间",
-    dataIndex: "create_time",
-    key: "create_time",
-    render(text, record) {
-      return <span>{format(text, "yyyy-MM-dd")}</span>;
-    },
-  },
-  {
-    title: "用户状态",
-    dataIndex: "mg_state",
-    key: "mg_state",
-    render(text) {
-      return <Switch defaultChecked={text} />;
-    },
-  },
-  {
-    title: "操作",
-    dataIndex: "actions",
-    key: "actions",
-    render() {
-      return (
-        <Space direction="horizontal">
-          <Button shape="circle" type="primary" icon={<EditOutlined />} />
-          <Button shape="circle" icon={<CheckOutlined />} />
-          <Button shape="circle" danger icon={<DeleteOutlined />} />
-        </Space>
-      );
-    },
-  },
-];
-
 function Users() {
+  const columns = [
+    {
+      dataIndex: "num",
+      key: "num",
+      title: "#",
+      render(text, record, index) {
+        return <span>{index}</span>;
+      },
+    },
+    {
+      title: "姓名",
+      dataIndex: "username",
+      key: "username",
+    },
+    {
+      title: "邮箱",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "电话",
+      dataIndex: "mobile",
+      key: "mobile",
+    },
+    {
+      title: "创建时间",
+      dataIndex: "create_time",
+      key: "create_time",
+      render(text, record) {
+        return <span>{format(text, "yyyy-MM-dd")}</span>;
+      },
+    },
+    {
+      title: "用户状态",
+      dataIndex: "mg_state",
+      key: "mg_state",
+      render(text) {
+        return <Switch defaultChecked={text} />;
+      },
+    },
+    {
+      title: "操作",
+      dataIndex: "actions",
+      key: "actions",
+      render() {
+        return (
+          <Space direction="horizontal">
+            <Button shape="circle" type="primary" icon={<EditOutlined />} />
+            <Button shape="circle" icon={<CheckOutlined />} />
+            <Button shape="circle" danger icon={<DeleteOutlined />} />
+          </Space>
+        );
+      },
+    },
+  ];
   const [dataSource, setDataSource] = useState([]);
   const [query, setQuery] = useState("");
   const [pagination, setPagination] = useState({
@@ -95,11 +94,14 @@ function Users() {
         pagesize: newPagination.pageSize,
       },
     });
-
-    console.log("data:", data);
     if (status === 200) {
-      setDataSource(data.users);
       setPagination({ ...newPagination, total: data.total });
+      // ! 需要数据里每条数据里带一个key值
+      setDataSource(
+        data.users.map((user) => {
+          return { ...user, key: user.id };
+        })
+      );
       message.success(msg);
     } else {
       message.error(msg);
@@ -143,7 +145,7 @@ function Users() {
   return (
     <HomeLayout>
       <div className="user-container">
-        <Card key="body">
+        <Card>
           <Space direction="vertical" className="user-content">
             <Breadcrumb key="breadcrumb">
               <Breadcrumb.Item>首页</Breadcrumb.Item>
@@ -154,33 +156,33 @@ function Users() {
               <Input.Search enterButton onSearch={handleSearch} />
               <Button onClick={() => setVisible(true)}>添加用户</Button>
             </Space>
-            <Modal
-              title="添加用户"
-              okText="确定"
-              cancelText="取消"
-              onOk={handleAddUserOk}
-              onCancel={() => {
-                setVisible(false);
-              }}
-              visible={visible}
-            >
-              <Form form={form}>
-                <Form.Item label="用户名" name="username" rules={[{ required: true, message: "请输入用户名!" }]}>
-                  <Input />
-                </Form.Item>
-                <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码!" }]}>
-                  <Input.Password />
-                </Form.Item>
-                <Form.Item label="邮箱" name="email">
-                  <Input />
-                </Form.Item>
-                <Form.Item label="电话" name="mobile">
-                  <Input />
-                </Form.Item>
-              </Form>
-            </Modal>
             <Table columns={columns} dataSource={dataSource} pagination={pagination} onChange={handleChange} />
           </Space>
+          <Modal
+            title="添加用户"
+            okText="确定"
+            cancelText="取消"
+            onOk={handleAddUserOk}
+            onCancel={() => {
+              setVisible(false);
+            }}
+            visible={visible}
+          >
+            <Form form={form}>
+              <Form.Item label="用户名" name="username" rules={[{ required: true, message: "请输入用户名!" }]}>
+                <Input />
+              </Form.Item>
+              <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码!" }]}>
+                <Input.Password />
+              </Form.Item>
+              <Form.Item label="邮箱" name="email">
+                <Input />
+              </Form.Item>
+              <Form.Item label="电话" name="mobile">
+                <Input />
+              </Form.Item>
+            </Form>
+          </Modal>
         </Card>
       </div>
     </HomeLayout>
