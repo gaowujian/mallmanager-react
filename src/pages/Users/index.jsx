@@ -67,7 +67,7 @@ function Users() {
           <Space direction="horizontal">
             <Button shape="circle" type="primary" icon={<EditOutlined />} onClick={() => showUserEditForm(record)} />
             <Button shape="circle" icon={<CheckOutlined />} />
-            <Button shape="circle" danger icon={<DeleteOutlined />} />
+            <Button shape="circle" danger icon={<DeleteOutlined />} onClick={() => showDeleteConfigDialog(record)} />
           </Space>
         );
       },
@@ -103,6 +103,32 @@ function Users() {
       }, 1000);
     }
   };
+
+  function showDeleteConfigDialog(record) {
+    Modal.confirm({
+      title: "删除用户",
+      content: `你确定要删除用户${record.username}吗?`,
+      okText: "确定",
+      okType: "danger",
+      cancelText: "取消",
+      async onOk() {
+        const {
+          meta: { msg, status },
+        } = await http.delete(`/users/${record.id}`);
+        if (status === 200) {
+          // 删除成功提示，返回第一页，更新数据
+          message.success(msg);
+          paginationRef.current.current = 1;
+          getUserList();
+        } else {
+          message.error(msg);
+        }
+      },
+      onCancel() {
+        // console.log("取消");
+      },
+    });
+  }
   const userIdRef = useRef(0);
   const showUserEditForm = (record) => {
     setUserEditFormVisible(true);
