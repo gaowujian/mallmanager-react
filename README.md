@@ -1,4 +1,5 @@
 # Getting started with vite-react
+简单的商城中后台项目练手，熟悉常见的项目业务开发
 
 这是一个为了自己方便练习项目开发的脚手架，基于 vite 的 react 模板
 
